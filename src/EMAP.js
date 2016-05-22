@@ -15,7 +15,7 @@ class EMAP {
 		this.h = DOM.offsetHeight;
 
 		this.initRender();
-		//this.initControls();
+		this.initControls();
 		this.initPlanet();
 		this.initLight();
 
@@ -74,30 +74,9 @@ class EMAP {
 
 	addObject(obj) {
 		// point
-		const dotGeometry = new THREE.Geometry();
-		dotGeometry.vertices.push(new THREE.Vector3( 0, 0, 0));
-		const dotMaterial = new THREE.PointsMaterial( { size: 5, color: 0xff3333, sizeAttenuation: false } );
-		const dot = new THREE.Points( dotGeometry, dotMaterial );
-		dot.position.x = obj.pos.x * this.rate;
-		dot.position.y = obj.pos.y * this.rate;
-		dot.position.z = obj.pos.z * this.rate;
-		this.scene.add(dot);
-
-		const lPos = g.fromLL(obj.pos.long, obj.pos.lat, 500000);
-
-		var spritey = makeTextSprite( 'sdf', 
-			{
-				color: "rgba(255, 0, 0, 1)",
-				backgroundColor: {r:255, g:100, b:100, a:0.8} 
-			}
-		);
-		
-		spritey.position.x = lPos.x * this.rate;
-		spritey.position.y = lPos.y * this.rate;
-		spritey.position.z = lPos.z * this.rate;
-		const scaleRate = 0.002;
-		spritey.scale.set(256 * this.Planet.radius * this.rate * scaleRate, 64 * this.Planet.radius * this.rate * scaleRate, 1)
-		this.scene.add( spritey );
+		obj.render();
+		obj.mesh.scale.set(this.rate, this.rate, this.rate);
+		this.scene.add(obj.mesh);
 	}
 }
 

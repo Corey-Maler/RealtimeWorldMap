@@ -1,11 +1,15 @@
 const THREE = require('three');
+const d = require('debug')('app');
+const g = require('./geodesic');
 
 module.exports = {
 	toRad: function(deg) {
 		return deg * Math.PI / 180;
 	},
 
-	makeTextSprite: makeTextSprite
+	makeTextSprite: makeTextSprite,
+	interpolate: interpolate,
+	km: km
 }
 
 function makeTextSprite( message, parameters )
@@ -74,4 +78,44 @@ function roundRect(ctx, x, y, w, h, r)
     ctx.closePath();
     ctx.fill();
 	ctx.stroke();   
+}
+
+function km(x) {
+	return 1000 * x;
+}
+
+function interpolate(arr) {
+	//d('interpolate', arr);
+	let i = 0;
+	const max = km(1000);
+	const ls = arr.length;
+	while (i < arr.length - 1) {
+		const cur = arr[i]; 
+		const next = arr[i + 1];
+
+		// TODO: OMG, refactor this
+		const dist = cur.distanceTo(next);
+		if (dist > max) {
+			//d('dist', dist, cur, next);
+			//v0 + t * (v1 - v0);
+			const t = max / dist;
+			//d('>', t);
+			const V = new THREE.Vector3();
+			V.subVectors(next, cur);
+			V.multiplyScalar(t);
+			V.add(cur);
+			const dd = new g(V.x, V.y, V.z);
+			const h = cur.h + t * (next.h - cur.h);
+			V.h = h;
+			arr.splice(i + 1, 0, g.fromLL(dd.long, dd.lat, h));
+			//arr.splice(i + 1, 0, V);
+			//d('int h', h, dd, g.fromLL(dd.long, dd.lat, h))
+		}
+
+		i++;
+		if (i > ls * 50) break;
+	}
+
+	d('int result', arr);
+	return arr;
 }

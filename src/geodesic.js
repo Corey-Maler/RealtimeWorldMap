@@ -8,6 +8,13 @@ class Geo extends Vector3 {
 	constructor(x, y, z) {
 		super(x, y, z);
 		//d('custom vector');
+
+		const r = this.length();
+		this.h = r - Geo.planet.radius; 
+		this.lat = - Math.asin(- y / r);
+		this.long = -Math.atan2(x, -z);
+		//this.long = - Math.asin(x / (r * Math.cos(-this.lat)));
+
 	}
 
 	static fromLLd(long, lat, _h) {
@@ -31,10 +38,6 @@ class Geo extends Vector3 {
 			- r * Math.sin(- lat),
 			- r * Math.cos(- lat) * Math.cos(- long)
 		);
-
-		res.lat = lat;
-		res.long = long;
-		res.h = h;
 
 		return res;
 	}

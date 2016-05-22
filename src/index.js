@@ -7,12 +7,28 @@ const EMAP = require('./EMAP');
 
 g.planet = Planet;
 
+
 const tools = require('./tools');
 window.tools = tools;
+
+const Body = require('./body');
+Body.Planet = Planet;
 
 const d = debug('app');
 
 d('Hello world');
+
+const a = g.fromLL(-0.57988, 1.25044, -64003);
+
+const b = new g(a.x, a.y, a.z);
+
+const c = g.fromLL(b.long, b.lat, 30000);
+
+d('o', -0.57988, 1.25044);
+d('a', a);
+d('b', b);
+d('c', c);
+
 
 const DOM = document.getElementById('Content');
 
@@ -20,9 +36,16 @@ const eMAP = new EMAP(DOM);
 
 eMAP.start();
 
-eMAP.addObject({
-	pos: g.fromLLd(89, 89)
-})
+eMAP.addObject(new Body({
+	pos: g.fromLLd(89, 89),
+	path: [
+		g.fromLLd(-130, 80, 30000),
+		g.fromLLd(-140, 80, 30000),
+		g.fromLLd(-150, 60, 50000),
+		g.fromLLd(-140, 30, 50000),
+		g.fromLLd(-80, -10, 50000)
+	]
+}));
 
 
 
