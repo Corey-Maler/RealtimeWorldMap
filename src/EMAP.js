@@ -1,6 +1,8 @@
 const d 			= require('debug')('EMAP');
 const THREE 		= require('three');
 const OrbitControls = require('three-orbit-controls')(THREE);
+const g 			= require('./geodesic');
+const makeTextSprite = require('./tools').makeTextSprite;
 
 class EMAP {
 	constructor(DOM, _options) {
@@ -13,7 +15,7 @@ class EMAP {
 		this.h = DOM.offsetHeight;
 
 		this.initRender();
-		this.initControls();
+		//this.initControls();
 		this.initPlanet();
 		this.initLight();
 
@@ -30,9 +32,10 @@ class EMAP {
 		this.renderer.setClearColor(0xf5f1f1, 1);
 
 		this.camera = new THREE.PerspectiveCamera( 75, this.w / this.h, 1, 10000 );
-		this.camera.position.y = this.Planet.radius * this.rate * 1;
-		this.camera.position.z = this.Planet.radius * this.rate * 2;
-		this.camera.lookAt(new THREE.Vector3(0, this.Planet.radius * this.rate * 0.5, 0));
+		this.camera.position.x = this.Planet.radius * this.rate * 0.6;
+		this.camera.position.y = this.Planet.radius * this.rate * 1.4;
+		this.camera.position.z = this.Planet.radius * this.rate * 0.9;
+		this.camera.lookAt(new THREE.Vector3(0, this.Planet.radius * this.rate * 1, 0));
 		this.scene.add(this.camera);
 	}
 
@@ -66,6 +69,35 @@ class EMAP {
 
 	start() {
 		this.render();
+	}
+
+
+	addObject(obj) {
+		// point
+		const dotGeometry = new THREE.Geometry();
+		dotGeometry.vertices.push(new THREE.Vector3( 0, 0, 0));
+		const dotMaterial = new THREE.PointsMaterial( { size: 5, color: 0xff3333, sizeAttenuation: false } );
+		const dot = new THREE.Points( dotGeometry, dotMaterial );
+		dot.position.x = obj.pos.x * this.rate;
+		dot.position.y = obj.pos.y * this.rate;
+		dot.position.z = obj.pos.z * this.rate;
+		this.scene.add(dot);
+
+		const lPos = g.fromLL(obj.pos.long, obj.pos.lat, 500000);
+
+		var spritey = makeTextSprite( 'sdf', 
+			{
+				color: "rgba(255, 0, 0, 1)",
+				backgroundColor: {r:255, g:100, b:100, a:0.8} 
+			}
+		);
+		
+		spritey.position.x = lPos.x * this.rate;
+		spritey.position.y = lPos.y * this.rate;
+		spritey.position.z = lPos.z * this.rate;
+		const scaleRate = 0.002;
+		spritey.scale.set(256 * this.Planet.radius * this.rate * scaleRate, 64 * this.Planet.radius * this.rate * scaleRate, 1)
+		this.scene.add( spritey );
 	}
 }
 

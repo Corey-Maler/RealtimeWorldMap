@@ -20,6 +20,10 @@ const eMAP = new EMAP(DOM);
 
 eMAP.start();
 
+eMAP.addObject({
+	pos: g.fromLLd(89, 89)
+})
+
 
 
 
