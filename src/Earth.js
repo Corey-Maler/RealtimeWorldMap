@@ -82,8 +82,8 @@ class Earth {
 	drawCity(city) {
 		const dotGeometry = new THREE.Geometry();
 		dotGeometry.vertices.push(new THREE.Vector3( 0, 0, 0));
-		const dotMaterial = new THREE.PointCloudMaterial( { size: 5, color: 0x333333, sizeAttenuation: false } );
-		const dot = new THREE.PointCloud( dotGeometry, dotMaterial );
+		const dotMaterial = new THREE.PointsMaterial( { size: 5, color: 0x333333, sizeAttenuation: false } );
+		const dot = new THREE.Points( dotGeometry, dotMaterial );
 		dot.position.x = city.pos.x;
 		dot.position.y = city.pos.y;
 		dot.position.z = city.pos.z;
