@@ -36,8 +36,8 @@ const eMAP = new EMAP(DOM);
 
 eMAP.start();
 
-eMAP.addObject(new Body({
-	pos: g.fromLLd(89, 89),
+const sheep1 = new Body({
+	pos: 0.4,
 	path: [
 		g.fromLLd(-130, 80, 30000),
 		g.fromLLd(-140, 80, 30000),
@@ -45,7 +45,11 @@ eMAP.addObject(new Body({
 		g.fromLLd(-140, 30, 50000),
 		g.fromLLd(-80, -10, 50000)
 	]
-}));
+});
+
+window.sheep1 = sheep1;
+
+eMAP.addObject(sheep1);
 
 
 

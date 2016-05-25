@@ -7,21 +7,50 @@ const tools			= require('./tools');
 class Body {
 	constructor(props) {
 		this.props = props;
-		this.pos = props.pos;
+		this._pos = props.pos;
 		this.mesh = new THREE.Group();
 	}
 
+	set pos (val) {
+		this._pos = val;
+		const t = this.pathSpline.getPoint(val);
+		const p = new g(t.x, t.y, t.z);
+
+		this.dot.position.x = p.x;
+		this.dot.position.y = p.y;
+		this.dot.position.z = p.z;
+
+
+		const lPos = g.fromLL(p.long, p.lat, 500000);
+
+		this.spritey.position.x = lPos.x;
+		this.spritey.position.y = lPos.y;
+		this.spritey.position.z = lPos.z;
+	}
+
+	get pos() { return this._pos; }
+
 	render() {
+		this.renderPath();
+
+		const t = this.pathSpline.getPoint(this._pos);
+		d('spline', this._pos, this.pathSpline.getPoint(this._pos));
+
+		const p = new g(t.x, t.y, t.z);
+		d('render pos', p);
+
+
 		const dotGeometry = new THREE.Geometry();
 		dotGeometry.vertices.push(new THREE.Vector3( 0, 0, 0));
 		const dotMaterial = new THREE.PointsMaterial( { size: 5, color: 0xff3333, sizeAttenuation: false } );
 		const dot = new THREE.Points( dotGeometry, dotMaterial );
-		dot.position.x = this.pos.x;
-		dot.position.y = this.pos.y;
-		dot.position.z = this.pos.z;
+		dot.position.x = p.x;
+		dot.position.y = p.y;
+		dot.position.z = p.z;
 		this.mesh.add(dot);
+		this.dot = dot;
 
-		const lPos = g.fromLL(this.pos.long, this.pos.lat, 500000);
+		const lPos = g.fromLL(p.long, p.lat, 500000);
 
 		var spritey = makeTextSprite( 'sdf', 
 			{
@@ -37,17 +66,20 @@ class Body {
 		spritey.scale.set(256 * Body.Planet.radius * scaleRate, 64 * Body.Planet.radius * scaleRate, 1)
 		
 		this.mesh.add(spritey);
+		this.spritey = spritey;
 
-		this.renderPath();
+		
 	}
 
 	renderPath() {
 		const geometry = new THREE.Geometry();
 		const n_sub = 3;
 		const points = tools.interpolate(this.props.path);
-		var spline = new THREE.Spline( points );
+		const spline = new THREE.Spline( points );
+		this.pathSpline = spline;
 		for (let i = 0; i < points.length * n_sub; i ++ ) {
 			const index = i / ( points.length * n_sub );
+			//d('index', index);
 			const position = spline.getPoint( index );
 			geometry.vertices[i] = new THREE.Vector3(position.x, position.y, position.z);
 		}
@@ -55,7 +87,6 @@ class Body {
 
 		const line = new THREE.Line(geometry,  material);
 		this.mesh.add(line);
-
 	}
 }
 

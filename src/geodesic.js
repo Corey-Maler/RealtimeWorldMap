@@ -6,7 +6,11 @@ const d = require('debug')('app');
 
 class Geo extends Vector3 {
 	constructor(x, y, z) {
-		super(x, y, z);
+		if (x instanceof Vector3) {
+			super(x.x, x.y, x.z);
+		} else {
+			super(x, y, z);
+		} 
 		//d('custom vector');
 
 		const r = this.length();
