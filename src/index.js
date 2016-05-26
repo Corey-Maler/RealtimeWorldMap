@@ -11,6 +11,8 @@ g.planet = Planet;
 const tools = require('./tools');
 window.tools = tools;
 
+window.THREE = require('three');
+
 const Body = require('./body');
 Body.Planet = Planet;
 
@@ -37,7 +39,9 @@ const eMAP = new EMAP(DOM);
 eMAP.start();
 
 const sheep1 = new Body({
-	pos: 0.4,
+	pos: 0.1,
+	model: 'ship.json',
+	sizeX: 1000000,
 	path: [
 		g.fromLLd(-130, 80, 30000),
 		g.fromLLd(-140, 80, 30000),
@@ -48,8 +52,12 @@ const sheep1 = new Body({
 });
 
 window.sheep1 = sheep1;
+sheep1.showModel();
 
 eMAP.addObject(sheep1);
+
+window.eMAP = eMAP;
+//eMAP.LookNear(sheep1);
 
 
 

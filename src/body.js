@@ -9,6 +9,15 @@ class Body {
 		this.props = props;
 		this._pos = props.pos;
 		this.mesh = new THREE.Group();
+		this.sizeX = props.sizeX;
+		this.modelMesh = new THREE.Group();
+		this.meshes = {};
+		this.k = 1;
+
+		if (typeof props.model == 'string') {
+			this.model = props.model;
+			this.loadModel();
+		}
 	}
 
 	set pos (val) {
@@ -26,6 +35,8 @@ class Body {
 		this.spritey.position.x = lPos.x;
 		this.spritey.position.y = lPos.y;
 		this.spritey.position.z = lPos.z;
+
+		this.calcModelPosition();
 	}
 
 	get pos() { return this._pos; }
@@ -68,14 +79,74 @@ class Body {
 		this.mesh.add(spritey);
 		this.spritey = spritey;
 
+		//this.renderG();
 		
+	}
+
+	loadModel() {
+		const loader = new THREE.JSONLoader();
+		loader.load(this.model, geometry => {
+			d('model loaded!', geometry);
+			this.modelGeometry = geometry;
+			this.prepearModel();
+		});
+	}
+
+	prepearModel() {
+		const mesh = new THREE.Mesh(this.modelGeometry, 
+				new THREE.MeshStandardMaterial({color: 0xff0000, roughness: 1, metalness: 0.075, ambientIntensity: 1}));
+		const r = 30000; // FIXME: temporary
+		const k = this.sizeX / this.modelGeometry.boundingSphere.radius;
+		this.k = k;
+		mesh.scale.set(k, k, k);
+
+		this.meshes.model = mesh;
+		this.modelMesh.add(mesh);
+
+		this.calcModelPosition();
+	}
+
+	showModel() {
+		this.mesh.add(this.modelMesh);
+	}
+
+	getPosition() {
+		const t = this._pos;
+		const va = this.pathSpline.getPoint(t);
+		return new g(va.x, va.y, va.z);
+	}
+
+	calcModelPosition() {
+		const mesh = this.modelMesh;
+		const p = this.getPosition();
+		mesh.position.copy(p);
+
+		const axis = new THREE.Vector3(0, 1, 0);
+		mesh.quaternion.setFromUnitVectors(axis, p.clone().normalize());
+
+		const tangent = this.pathSpline.getTangent(this._pos).normalize();
+		const up = new THREE.Vector3( 0, 0, 1 );
+		up.applyQuaternion(mesh.quaternion);
+
+		const radians = up.angleTo(tangent);
+
+		const quaternion = new THREE.Quaternion();
+		quaternion.setFromAxisAngle(p.clone().normalize(), radians );
+
+		mesh.quaternion.multiplyQuaternions(quaternion, mesh.quaternion);
+	}
+
+	getNearCameraPosition() {
+		const va = this.modelMesh.localToWorld(new THREE.Vector3(2 * this.k, 0, 0));
+		return new g(va.x, va.y, va.z);
 	}
 
 	renderPath() {
 		const geometry = new THREE.Geometry();
 		const n_sub = 3;
 		const points = tools.interpolate(this.props.path);
-		const spline = new THREE.Spline( points );
+		const spline = new THREE.SplineCurve3( points );
+		spline.getTangent(0.3);
 		this.pathSpline = spline;
 		for (let i = 0; i < points.length * n_sub; i ++ ) {
 			const index = i / ( points.length * n_sub );
