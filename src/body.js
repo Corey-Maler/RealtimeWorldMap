@@ -13,6 +13,7 @@ class Body {
 		this.modelMesh = new THREE.Group();
 		this.meshes = {};
 		this.k = 1;
+		this.__t = 0;
 
 		if (typeof props.model == 'string') {
 			this.model = props.model;
@@ -99,6 +100,7 @@ class Body {
 		const k = this.sizeX / this.modelGeometry.boundingSphere.radius;
 		this.k = k;
 		mesh.scale.set(k, k, k);
+		mesh.rotateY(-Math.PI / 2)
 
 		this.meshes.model = mesh;
 		this.modelMesh.add(mesh);
@@ -137,7 +139,7 @@ class Body {
 	}
 
 	getNearCameraPosition() {
-		const va = this.modelMesh.localToWorld(new THREE.Vector3(2 * this.k, 0, 0));
+		const va = this.modelMesh.localToWorld(new THREE.Vector3(2 * this.k, 2 * this.k, 0));
 		return new g(va.x, va.y, va.z);
 	}
 
@@ -158,6 +160,12 @@ class Body {
 
 		const line = new THREE.Line(geometry,  material);
 		this.mesh.add(line);
+	}
+
+	update() {
+		this.__t += 0.01;
+		if (this.__t > 0.99) this.__t = 0;
+		this.pos = this.__t;
 	}
 }
 

@@ -40,8 +40,8 @@ eMAP.start();
 
 const sheep1 = new Body({
 	pos: 0.1,
-	model: 'ship.json',
-	sizeX: 1000000,
+	model: 'shipLowPoly.json',
+	sizeX: 100000,
 	path: [
 		g.fromLLd(-130, 80, 30000),
 		g.fromLLd(-140, 80, 30000),

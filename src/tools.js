@@ -84,10 +84,10 @@ function km(x) {
 	return 1000 * x;
 }
 
-function interpolate(arr) {
+function interpolate(arr, rate = 1) {
 	//d('interpolate', arr);
 	let i = 0;
-	const max = km(1000);
+	const max = km(1000) * rate;
 	const ls = arr.length;
 	while (i < arr.length - 1) {
 		const cur = arr[i]; 

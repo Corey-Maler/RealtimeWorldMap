@@ -21,6 +21,10 @@ class Geo extends Vector3 {
 
 	}
 
+	static fromV(v) {
+		return new Geo(v.x, v.y, v.z);
+	}
+
 	static fromLLd(long, lat, _h) {
 		return Geo.fromLL(long * Math.PI / 180, lat * Math.PI / 180, _h);
 	}
