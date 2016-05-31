@@ -21,19 +21,6 @@ Body.Planet = Planet;
 
 const d = debug('app');
 
-d('Hello world');
-
-const a = g.fromLL(-0.57988, 1.25044, -64003);
-
-const b = new g(a.x, a.y, a.z);
-
-const c = g.fromLL(b.long, b.lat, 30000);
-
-d('o', -0.57988, 1.25044);
-d('a', a);
-d('b', b);
-d('c', c);
-
 
 const DOM = document.getElementById('Content');
 
@@ -44,7 +31,7 @@ eMAP.start();
 const sheep1 = new Body({
 	pos: 0.1,
 	model: 'shipLowPoly.json',
-	sizeX: 1000,
+	sizeX: 10000000,
 	name: 'Victorya',
 	props: ['speed: 86 mp/h', 'course: 312N'],
 	path: [

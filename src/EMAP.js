@@ -43,7 +43,7 @@ class EMAP {
 
 	initRender() {
 		this.scene = new THREE.Scene();
-		this.renderer = new THREE.WebGLRenderer({antialias: true, logarithmicDepthBuffer: true});
+		this.renderer = new THREE.WebGLRenderer({antialias: true, /* logarithmicDepthBuffer: true */});
 		this.renderer.setSize(this.w, this.h);
 		this.DOM.appendChild(this.renderer.domElement);
 		this.renderer.setClearColor(0xf5f1f1, 1);
@@ -53,7 +53,7 @@ class EMAP {
 		this.__lookAt = this.center;
 		this.__cameraUp = this.__north;
 
-		this.camera = new THREE.PerspectiveCamera( 75, this.w / this.h, 0.1, 10000 );
+		this.camera = new THREE.PerspectiveCamera( 75, this.w / this.h, 0.01, 1000 );
 		this.camera.position.x = this.Planet.radius * this.rate * 0.6;
 		this.camera.position.y = this.Planet.radius * this.rate * 1.4;
 		this.camera.position.z = this.Planet.radius * this.rate * 0.9;
@@ -80,7 +80,7 @@ class EMAP {
 
 	initLight() {
 		this.light = new THREE.PointLight(0xffffff, 0.1, 0);
-		this.light.position.set(-10, 10, 5);
+		this.light.position.set(-2 * this.Planet.radius * this.rate, 10 * this.Planet.radius * this.rate, 5 * this.Planet.radius * this.rate);
 		this.scene.add(this.light);
 
 
@@ -92,6 +92,8 @@ class EMAP {
 		requestAnimationFrame(this.render);
 
 		this.update();
+
+		this.objs.forEach((obj) => {obj.water.render(); obj.water.material.uniforms.time.value += 1.0 / 60.0;});
 
 		this['render_' + this.devMode]();
 
@@ -109,7 +111,7 @@ class EMAP {
 
 		this._helpers.visible = true;
 		const renderer = this.renderer;
-		renderer.clear();
+		//renderer.clear();
 		renderer.setViewport( 0, 0, this.w, this.h );
 		this.renderer.render(this.scene, this.camera );
 
@@ -225,6 +227,10 @@ class EMAP {
 		const ch = new THREE.CameraHelper(fakeCamera);
 		this._helpers.add(ch);
 		this.ch = ch;
+
+		var sphereSize = this.planet.radius * this.rate * 0.1;
+		var pointLightHelper = new THREE.PointLightHelper(this.light, sphereSize );
+		this._helpers.add( pointLightHelper );
 
 		this.scene.add(fakeCamera);
 	}

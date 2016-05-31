@@ -180,12 +180,12 @@ class Body {
 		// water
 		const mat = new THREE.MeshStandardMaterial({color: 0x333333, roughness: 1, metalness: 0.075, ambientIntensity: 1});
 
-		/*
+		
 		const waterNormals = new THREE.TextureLoader().load( 'waternormals.jpg' );
 		waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
 		//waterNormals.normalMap.needsUpdate = true;
 		
-		const water = new THREE.Water(this.eMAP.renderer, this.eMAP.fakeCamera, this.eMAP.scene, {
+		const water = new THREE.Water(this.eMAP.renderer, this.eMAP.camera, this.eMAP.scene, {
 					textureWidth: 512,
 					textureHeight: 512,
 					waterNormals: waterNormals,
@@ -196,16 +196,20 @@ class Body {
 					distortionScale: 50.0,
 				} );
 
-		*/
+		this.water = water;
+
+		/* */
 		const mirrorMesh = new THREE.Mesh(
-					new THREE.PlaneBufferGeometry( this.k * 2, this.k * 2 ),
-					//water.material
-					mat
+					new THREE.PlaneBufferGeometry( this.k * 20, this.k * 20 ),
+					water.material
+					//mat
 		);
 
-		//mirrorMesh.add(water);
+		mirrorMesh.add(water);
 
 		mirrorMesh.rotation.x = - Math.PI * 0.5;
+
+
 
 		this.modelMesh.add(mirrorMesh);
 
