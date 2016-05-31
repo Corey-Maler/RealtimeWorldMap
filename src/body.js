@@ -3,6 +3,8 @@ const THREE 		= require('three');
 const g 			= require('./geodesic');
 const makeTextSprite = require('./tools').makeTextSprite;
 const tools			= require('./tools');
+const fontDraw = require('./Draw3DText');
+//console.log('water', THREE.Water);
 
 class Body {
 	constructor(props) {
@@ -19,6 +21,8 @@ class Body {
 			this.model = props.model;
 			this.loadModel();
 		}
+
+
 	}
 
 	set pos (val) {
@@ -42,7 +46,8 @@ class Body {
 
 	get pos() { return this._pos; }
 
-	render() {
+	render(eMAP) {
+		this.eMAP = eMAP;
 		this.renderPath();
 
 		const t = this.pathSpline.getPoint(this._pos);
@@ -81,13 +86,15 @@ class Body {
 		this.spritey = spritey;
 
 		//this.renderG();
+
+		
 		
 	}
 
 	loadModel() {
 		const loader = new THREE.JSONLoader();
 		loader.load(this.model, geometry => {
-			d('model loaded!', geometry);
+			//d('model loaded!', geometry);
 			this.modelGeometry = geometry;
 			this.prepearModel();
 		});
@@ -104,6 +111,7 @@ class Body {
 
 		this.meshes.model = mesh;
 		this.modelMesh.add(mesh);
+		this.renderNear();
 
 		this.calcModelPosition();
 	}
@@ -139,7 +147,7 @@ class Body {
 	}
 
 	getNearCameraPosition() {
-		const va = this.modelMesh.localToWorld(new THREE.Vector3(2 * this.k, 2 * this.k, 0));
+		const va = this.modelMesh.localToWorld(new THREE.Vector3(3 * this.k, 3 * this.k, 3 * this.k));
 		return new g(va.x, va.y, va.z);
 	}
 
@@ -166,6 +174,71 @@ class Body {
 		this.__t += 0.01;
 		if (this.__t > 0.99) this.__t = 0;
 		this.pos = this.__t;
+	}
+
+	renderNear() {
+		// water
+		const mat = new THREE.MeshStandardMaterial({color: 0x333333, roughness: 1, metalness: 0.075, ambientIntensity: 1});
+
+		/*
+		const waterNormals = new THREE.TextureLoader().load( 'waternormals.jpg' );
+		waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
+		//waterNormals.normalMap.needsUpdate = true;
+		
+		const water = new THREE.Water(this.eMAP.renderer, this.eMAP.fakeCamera, this.eMAP.scene, {
+					textureWidth: 512,
+					textureHeight: 512,
+					waterNormals: waterNormals,
+					alpha: 	1.0,
+					sunDirection: this.eMAP.light.position.clone().normalize(),
+					sunColor: 0xffffff,
+					waterColor: 0x001e0f,
+					distortionScale: 50.0,
+				} );
+
+		*/
+		const mirrorMesh = new THREE.Mesh(
+					new THREE.PlaneBufferGeometry( this.k * 2, this.k * 2 ),
+					//water.material
+					mat
+		);
+
+		//mirrorMesh.add(water);
+
+		mirrorMesh.rotation.x = - Math.PI * 0.5;
+
+		this.modelMesh.add(mirrorMesh);
+
+		this.renderText();
+	}
+
+	renderText() {
+		let xShift = 0;
+		const HH = fontDraw(this.props.name, 0x999999);
+		HH.scaleWidth(this.k * 2);
+		HH.position.y = this.k * 0.1;
+		HH.position.z = HH.actualW() * 0.5;
+		// FIXME: conside obj width/height/long
+		HH.position.x = this.k * 0.4 + HH.actualH();
+		xShift += HH.position.x;
+		HH.rotateY(Math.PI * 0.5);
+		HH.rotateX(-Math.PI * 0.5);
+		this.modelMesh.add(HH);
+
+		for (let i in this.props.props) {
+			const prop = this.props.props[i];
+			const HH = fontDraw(prop, 0xaaaaaa);
+			HH.scaleHeight(this.k * 0.2);
+			HH.position.y = this.k * 0.1;
+			HH.position.z = HH.actualW() * 0.5;
+			// FIXME: conside obj width/height/long
+			const xS = this.k * 0.2 + HH.actualH();
+			xShift += xS;
+			HH.position.x = xShift;
+			HH.rotateY(Math.PI * 0.5);
+			HH.rotateX(-Math.PI * 0.5);
+			this.modelMesh.add(HH);
+		}
 	}
 }
 

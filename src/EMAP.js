@@ -3,10 +3,18 @@ const THREE 		= require('three');
 const OrbitControls = require('three-orbit-controls')(THREE);
 const g 			= require('./geodesic');
 const {makeTextSprite, interpolate} = require('./tools');
-var TWEEN = require('tween.js');
+
+const fontDraw = require('./Draw3DText');
+
+console.log('THREE.TextGeometry', THREE.TextGeometry);
 
 class EMAP {
 	constructor(DOM, _options) {
+
+		fontDraw.loading.then(() => {
+
+		});
+
 		const options = _options || {};
 		this.DOM = DOM;
 		this.Planet = options.Planet || require('./Earth');
@@ -14,7 +22,7 @@ class EMAP {
 		this.objs = [];
 		this.t = 0;
 
-
+		this.devMode = options.devMode || 'd1';
 
 		this.w = DOM.offsetWidth;
 		this.h = DOM.offsetHeight;
@@ -35,7 +43,7 @@ class EMAP {
 
 	initRender() {
 		this.scene = new THREE.Scene();
-		this.renderer = new THREE.WebGLRenderer({antialias: true});
+		this.renderer = new THREE.WebGLRenderer({antialias: true, logarithmicDepthBuffer: true});
 		this.renderer.setSize(this.w, this.h);
 		this.DOM.appendChild(this.renderer.domElement);
 		this.renderer.setClearColor(0xf5f1f1, 1);
@@ -85,6 +93,19 @@ class EMAP {
 
 		this.update();
 
+		this['render_' + this.devMode]();
+
+	}
+
+	render_d0() {
+		this._helpers.visible = false;
+		const renderer = this.renderer;
+		renderer.clear();
+		renderer.setViewport( 0, 0, this.w, this.h );
+		this.renderer.render(this.scene, this.fakeCamera );
+	}
+
+	render_d1() {
 
 		this._helpers.visible = true;
 		const renderer = this.renderer;
@@ -96,9 +117,19 @@ class EMAP {
 		this._helpers.visible = false;
 		renderer.setViewport(0, 0, this.w * 0.25, this.h * 0.25);
 		renderer.render( this.scene, this.fakeCamera );
+	}
 
-		
-		
+	render_d2() {
+
+		const renderer = this.renderer;
+		renderer.clear();
+		this._helpers.visible = false;
+		renderer.setViewport(0, 0, this.w, this.h);
+		renderer.render(this.scene, this.fakeCamera);
+
+		this._helpers.visible = true;
+		renderer.setViewport( 0, 0, this.w * 0.25, this.h * 0.25);
+		this.renderer.render(this.scene, this.camera);		
 	}
 
 	update() {
@@ -111,10 +142,16 @@ class EMAP {
 		if (this._cameraPathT !== null) {
 			const p = this._cameraPath.getPoint(this._cameraPathT);
 			this.fakeCamera.position.copy(p);
+
+
+
+			let tt = this._cameraPathT;
+
+			tt += (1 - tt) / 50;
+
+			this._cameraPathT = tt;
 			
-			this._cameraPathT += 0.015;
-			
-			if (this._cameraPathT > 0.99) {
+			if (this._cameraPathT > 0.9999999) {
 				this._cameraPathT = null;
 			}
 		} else {
@@ -133,18 +170,32 @@ class EMAP {
 			const da = this.__lookAtPath.getPoint(this.__lookAtPathT);
 			const up = this.__cameraUpPath.getPoint(this.__lookAtPathT);
 
-			this.__lookAtPathT += 0.05;
+			//this.__lookAtPathT += 0.05;
+
+			let tt = this.__lookAtPathT;
+			tt += (1 - tt) / 10;
+
+			this.__lookAtPathT = tt;
 
 			this.__lookAt = da;
 			this.__cameraUp = up;
 			
-			if (this.__lookAtPathT > 0.99) {
+			if (this.__lookAtPathT > 1.001) {
 				this.__lookAtPathT = null;
 			}
 		}
 
 		this.fakeCamera.up.copy(this.__cameraUp);
 		this.fakeCamera.lookAt(this.__lookAt);	
+
+		const dist = this.__lookAt.distanceTo(this.fakeCamera.position);
+
+
+		this.fakeCamera.near = dist * 0.1;
+		this.fakeCamera.far = dist * 1000;
+		this.fakeCamera.updateProjectionMatrix();
+
+
 	}
 
 	start() {
@@ -153,7 +204,7 @@ class EMAP {
 
 	addObject(obj) {
 		// point
-		obj.render();
+		obj.render(this);
 		obj.mesh.scale.set(this.rate, this.rate, this.rate);
 		this.objs.push(obj);
 		this.scene.add(obj.mesh);
@@ -201,10 +252,15 @@ class EMAP {
 
 	lookNear(body) {
 		this.target = body;
+
 		const p = body.getNearCameraPosition();
 		d('cam pos', p);
 
 		const da = body.getPosition().multiplyScalar(this.rate);
+
+		this.controls.target.copy(da);
+
+		console.log('DIST', Math.sqrt((p.x - da.x) * (p.x - da.x) + (p.y - da.y) * (p.y - da.y) + (p.z - da.z) * (p.z - da.z)));
 
 		this._arrow(da, 0xff0000);
 
@@ -218,6 +274,14 @@ class EMAP {
 		this.__lookAtPath = new THREE.SplineCurve3([this.__lookAt, da]);
 		this.__cameraUpPath = new THREE.SplineCurve3([this.__cameraUp, up]);
 		this.__lookAtPathT = 0;
+
+		/*
+		
+		this.fakeCamera.near = 0.001;
+		this.fakeCamera.far = 100;
+		this.fakeCamera.updateProjectionMatrix();
+		*/
+		
 
 	}
 
@@ -234,6 +298,10 @@ class EMAP {
 		this.__lookAtPath = new THREE.SplineCurve3([this.__lookAt, this.center]);
 		this.__cameraUpPath = new THREE.SplineCurve3([this.__cameraUp, this.__north]);
 		this.__lookAtPathT = 0;
+
+		this.fakeCamera.near = 1;
+		this.fakeCamera.far = 10000;
+		this.fakeCamera.updateProjectionMatrix();
 	}
 }
 

@@ -12,7 +12,7 @@ var countries = topojson.feature(world, world.objects.countries)
 
 const countrs = countries.features;
 
-d('eath', countrs);
+//d('eath', countrs);
 
 class Earth {
 	constructor() {
