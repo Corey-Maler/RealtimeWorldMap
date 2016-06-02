@@ -18,7 +18,7 @@ class EMAP {
 		const options = _options || {};
 		this.DOM = DOM;
 		this.Planet = options.Planet || require('./Earth');
-		this.rate = 100 / this.Planet.radius;
+		this.rate = 100000 / this.Planet.radius;
 		this.objs = [];
 		this.t = 0;
 
@@ -67,6 +67,8 @@ class EMAP {
 
 	initControls() {
 		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+		this.controls.minDistance = 0.1;
+		this.controls.maxDistance = this.Planet.radius * this.rate * 500.0;
 		//this.controls.enableZoom = false;
 		//this.controls.enablePan = false;
 	}
@@ -93,7 +95,7 @@ class EMAP {
 
 		this.update();
 
-		this.objs.forEach((obj) => {obj.water.render(); obj.water.material.uniforms.time.value += 1.0 / 60.0;});
+		this.objs.forEach((obj) => {obj.water.render(); /* obj.water.material.uniforms.time.value += 1.0 / 60.0; */});
 
 		this['render_' + this.devMode]();
 
@@ -124,14 +126,16 @@ class EMAP {
 	render_d2() {
 
 		const renderer = this.renderer;
-		renderer.clear();
+		//renderer.clear();
 		this._helpers.visible = false;
 		renderer.setViewport(0, 0, this.w, this.h);
 		renderer.render(this.scene, this.fakeCamera);
 
+		/*
 		this._helpers.visible = true;
 		renderer.setViewport( 0, 0, this.w * 0.25, this.h * 0.25);
 		this.renderer.render(this.scene, this.camera);		
+		*/
 	}
 
 	update() {
@@ -194,9 +198,14 @@ class EMAP {
 
 
 		this.fakeCamera.near = dist * 0.1;
-		this.fakeCamera.far = dist * 1000;
+		this.fakeCamera.far = dist * 100;
 		this.fakeCamera.updateProjectionMatrix();
 
+
+		const dist2 = this.__lookAt.distanceTo(this.camera.position);
+		this.camera.near = dist * 0.1;
+		this.camera.far = dist * 1000;
+		this.camera.updateProjectionMatrix();
 
 	}
 
@@ -260,14 +269,9 @@ class EMAP {
 		this.target = body;
 
 		const p = body.getNearCameraPosition();
-		d('cam pos', p);
-
 		const da = body.getPosition().multiplyScalar(this.rate);
 
 		this.controls.target.copy(da);
-
-		console.log('DIST', Math.sqrt((p.x - da.x) * (p.x - da.x) + (p.y - da.y) * (p.y - da.y) + (p.z - da.z) * (p.z - da.z)));
-
 		this._arrow(da, 0xff0000);
 
 		const up = g.fromLL(p.long, p.lat, p.h + 1000);
@@ -297,7 +301,6 @@ class EMAP {
 		const moveTo = new g.fromLLd(-30, 40, 10000000);
 		moveTo.multiplyScalar(this.rate)
 		const PATH = interpolate([g.fromV(this.fakeCamera.position), g.fromV(moveTo)], this.rate);
-		d('camera PATH', moveTo, PATH);
 		this._line(PATH, 0x0000ff)
 		this._cameraPath = new THREE.SplineCurve3(PATH);
 

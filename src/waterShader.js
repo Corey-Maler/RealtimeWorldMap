@@ -59,6 +59,10 @@ THREE.ShaderLib[ 'water' ] = {
 		'varying vec4 mirrorCoord;',
 		'varying vec3 worldPosition;',
 
+		"float blendOverlay(float base, float blend) {",
+			"return( base < 0.5 ? ( 2.0 * base * blend ) : (1.0 - 2.0 * ( 1.0 - base ) * ( 1.0 - blend ) ) );",
+		"}",
+
 		'vec4 getNoise( vec2 uv )',
 		'{',
 		'	vec2 uv0 = ( uv / 103.0 ) + vec2(time / 17.0, time / 29.0);',
@@ -91,27 +95,44 @@ THREE.ShaderLib[ 'water' ] = {
 		'	vec3 diffuseLight = vec3(0.0);',
 		'	vec3 specularLight = vec3(0.0);',
 
-		'	vec3 worldToEye = eye-worldPosition;',
+		'	vec3 worldToEye = eye-worldPosition;', // no
 		'	vec3 eyeDirection = normalize( worldToEye );',
 		'	sunLight( surfaceNormal, eyeDirection, 100.0, 2.0, 0.5, diffuseLight, specularLight );',
 
 		'	float distance = length(worldToEye);',
+		'	float sss = distance / 10.0;',
 
-		'	vec2 distortion = surfaceNormal.xz * ( 0.001 + 1.0 / distance ) * distortionScale;',
-		'	vec3 reflectionSample = vec3( texture2D( mirrorSampler, mirrorCoord.xy / mirrorCoord.z + distortion ) );',
-
-		'	float theta = max( dot( eyeDirection, surfaceNormal ), 0.0 );',
-		'	float rf0 = 0.3;',
-		'	float reflectance = rf0 + ( 1.0 - rf0 ) * pow( ( 1.0 - theta ), 5.0 );',
+		'	vec2 distortion = surfaceNormal.xz * ( 0.001 + 1.0 / distance ) * distortionScale * sss;', // no
+		//'	vec3 reflectionSample = vec3( texture2D( mirrorSampler, mirrorCoord.xy / mirrorCoord.z + distortion ) );', // yes
+		'   vec3 reflectionSample = vec3(texture2DProj(mirrorSampler, vec4(mirrorCoord.x + distortion.x, mirrorCoord.y + distortion.y, mirrorCoord.z, mirrorCoord[3])));',
+		'	float theta = max( dot( eyeDirection, surfaceNormal ), 0.0 );', // no
+		'	float rf0 = 0.3;', // no
+		'	float reflectance = rf0 + ( 1.0 - rf0 ) * pow( ( 1.0 - theta ), 5.0 );', // no
 		'	vec3 scatter = max( 0.0, dot( surfaceNormal, eyeDirection ) ) * waterColor;',
 		'	vec3 albedo = mix( sunColor * diffuseLight * 0.3 + scatter, ( vec3( 0.1 ) + reflectionSample * 0.9 + reflectionSample * specularLight ), reflectance );',
 		'	vec3 outgoingLight = albedo;',
-			THREE.ShaderChunk[ "fog_fragment" ],
+			//THREE.ShaderChunk[ "fog_fragment" ],
+			"vec4 color = texture2DProj(mirrorSampler, mirrorCoord);",
+			//"color = vec4(blendOverlay(waterColor.r, color.r), blendOverlay(waterColor.g, color.g), blendOverlay(waterColor.b, color.b), 1.0);",
+		//	"gl_FragColor = color;",
 		'	gl_FragColor = vec4( outgoingLight, alpha );',
 		'}'
 	].join( '\n' )
-
 };
+
+/*
+
+	//vec3 reflectionSample = vec3( texture2D( mirrorSampler, mirrorCoord.xy / mirrorCoord.z + distortion ) );
+	vec4 color = texture2DProj(mirrorSampler, vec4(mirrorCoord.x + distortion.x * 3000.0, mirrorCoord.y + distortion.y * 3000.0, mirrorCoord.z, mirrorCoord[3]));
+	vec3 reflectionSample = color.xyz;
+
+float sss = distance / 10.0;
+	vec2 distortion = surfaceNormal.xz * ( 0.001 + 1.0 / distance ) * distortionScale * sss;
+	//vec3 reflectionSample = vec3( texture2D( mirrorSampler, mirrorCoord.xy / mirrorCoord.z + distortion ) );
+	vec4 color = texture2DProj(mirrorSampler, vec4(mirrorCoord.x + distortion.x, mirrorCoord.y + distortion.y, mirrorCoord.z, mirrorCoord[3]));
+	vec3 reflectionSample = color.xyz;
+
+	*/
 
 THREE.Water = function ( renderer, camera, scene, options ) {
 
@@ -291,9 +312,13 @@ THREE.Water.prototype.updateTextureMatrix = function () {
 	projectionMatrix.elements[ 10 ] = c.z + 1.0 - this.clipBias;
 	projectionMatrix.elements[ 14 ] = c.w;
 
+	
+
 	var worldCoordinates = new THREE.Vector3();
 	worldCoordinates.setFromMatrixPosition( this.camera.matrixWorld );
 	this.eye = worldCoordinates;
 	this.material.uniforms.eye.value = this.eye;
+
+
 
 };

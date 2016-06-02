@@ -115,7 +115,5 @@ function interpolate(arr, rate = 1) {
 		i++;
 		if (i > ls * 50) break;
 	}
-
-	d('int result', arr);
 	return arr;
 }

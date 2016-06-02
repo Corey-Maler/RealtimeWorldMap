@@ -103,14 +103,15 @@ class Body {
 	prepearModel() {
 		const mesh = new THREE.Mesh(this.modelGeometry, 
 				new THREE.MeshStandardMaterial({color: 0xff0000, roughness: 1, metalness: 0.075, ambientIntensity: 1}));
-		const r = 30000; // FIXME: temporary
-		const k = this.sizeX / this.modelGeometry.boundingSphere.radius;
+		const rad = this.modelGeometry.boundingSphere.radius;
+		const k = this.sizeX;// / this.modelGeometry.boundingSphere.radius;
 		this.k = k;
-		mesh.scale.set(k, k, k);
+		mesh.scale.set(1 / rad, 1 / rad, 1 / rad);
 		mesh.rotateY(-Math.PI / 2)
 
 		this.meshes.model = mesh;
 		this.modelMesh.add(mesh);
+		this.modelMesh.scale.set(k, k, k);
 		this.renderNear();
 
 		this.calcModelPosition();
@@ -147,7 +148,7 @@ class Body {
 	}
 
 	getNearCameraPosition() {
-		const va = this.modelMesh.localToWorld(new THREE.Vector3(3 * this.k, 3 * this.k, 3 * this.k));
+		const va = this.modelMesh.localToWorld(new THREE.Vector3(3, 3, 3));
 		return new g(va.x, va.y, va.z);
 	}
 
@@ -160,7 +161,6 @@ class Body {
 		this.pathSpline = spline;
 		for (let i = 0; i < points.length * n_sub; i ++ ) {
 			const index = i / ( points.length * n_sub );
-			//d('index', index);
 			const position = spline.getPoint( index );
 			geometry.vertices[i] = new THREE.Vector3(position.x, position.y, position.z);
 		}
@@ -180,8 +180,20 @@ class Body {
 		// water
 		const mat = new THREE.MeshStandardMaterial({color: 0x333333, roughness: 1, metalness: 0.075, ambientIntensity: 1});
 
+
+		const mirror = new THREE.Mirror(this.eMAP.renderer, this.eMAP.camera, this.eMAP.scene, {
+					textureWidth: 512,
+					textureHeight: 512,
+					alpha: 	1.0,
+					sunDirection: this.eMAP.light.position.clone().normalize(),
+					sunColor: 0xffffff,
+					waterColor: 0x001e0f,
+					distortionScale: 500.0,
+					side: THREE.DoubleSide
+		});
 		
-		const waterNormals = new THREE.TextureLoader().load( 'waternormals.jpg' );
+		//const waterNormals = new THREE.TextureLoader().load( 'waternormals.jpg' );
+		const waterNormals = new THREE.ImageUtils.loadTexture('/waternormals.jpg');
 		waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
 		//waterNormals.normalMap.needsUpdate = true;
 		
@@ -194,18 +206,24 @@ class Body {
 					sunColor: 0xffffff,
 					waterColor: 0x001e0f,
 					distortionScale: 50.0,
-				} );
+					betaVersion: 0,
+					side: THREE.DoubleSide
+				});
 
 		this.water = water;
+		//this.water = mirror;
 
 		/* */
 		const mirrorMesh = new THREE.Mesh(
-					new THREE.PlaneBufferGeometry( this.k * 20, this.k * 20 ),
+					new THREE.PlaneBufferGeometry(2000, 2000, 10, 10),
 					water.material
 					//mat
+					//mirror.material
 		);
 
 		mirrorMesh.add(water);
+
+		//mirrorMesh.add(mirror);
 
 		mirrorMesh.rotation.x = - Math.PI * 0.5;
 
@@ -213,7 +231,7 @@ class Body {
 
 		this.modelMesh.add(mirrorMesh);
 
-		this.renderText();
+		//this.renderText();
 	}
 
 	renderText() {
