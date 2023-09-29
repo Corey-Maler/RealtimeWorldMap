@@ -1,33 +1,26 @@
 {
-  "name": "react-hot-boilerplate",
+  "name": "realtime-world-map",
+  "private": true,
   "version": "1.0.0",
-  "description": "Boilerplate for ReactJS project with hot code reloading",
+  "description": "Interactive 3D Globe",
   "scripts": {
-    "start": "node server.js",
+    "dev": "vite dev",
     "lint": "eslint src"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gaearon/react-hot-boilerplate.git"
+    "url": "https://github.com/Corey-Maler/RealtimeWorldMap"
   },
   "keywords": [
-    "react",
-    "reactjs",
-    "boilerplate",
-    "hot",
-    "reload",
-    "hmr",
-    "live",
-    "edit",
-    "webpack"
+    "threejs",
+    "globe"
   ],
-  "author": "Dan Abramov <dan.abramov@me.com> (http://github.com/gaearon)",
+  "author": "Corey Maler <corey.maler@outlook.com>",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/gaearon/react-hot-boilerplate/issues"
-  },
-  "homepage": "https://github.com/gaearon/react-hot-boilerplate",
+  "homepage": "https://github.com/Corey-Maler/RealtimeWorldMap",
   "devDependencies": {
+    "@types/react": "^18.2.23",
+    "@types/react-dom": "^18.2.8",
     "babel-core": "^6.0.20",
     "babel-eslint": "^4.1.3",
     "babel-loader": "^6.0.1",
@@ -37,17 +30,19 @@
     "eslint": "^1.10.3",
     "eslint-plugin-react": "^3.6.2",
     "react-hot-loader": "^1.3.0",
-    "webpack": "^1.12.2",
-    "webpack-dev-server": "^1.12.1"
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "debug": "^4.3.4",
     "earth-topojson": "^1.0.0",
     "json-loader": "^0.5.4",
-    "react": "^0.14.6",
-    "react-dom": "^0.14.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "three": "^0.77.1",
+    "three-orbit-controls": "^82.1.0",
     "topojson": "^1.6.26",
-    "tween.js": "^16.3.4"
+    "tween.js": "^16.3.4",
+    "vite": "^4.4.9"
   }
 }
