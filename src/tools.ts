@@ -1,18 +1,15 @@
-const THREE = require('three');
-const d = require('debug')('app');
-const g = require('./geodesic');
+import * as THREE from 'three';
+import debug from 'debug';
 
-module.exports = {
-	toRad: function(deg) {
-		return deg * Math.PI / 180;
-	},
+import g from './geodesic';
 
-	makeTextSprite: makeTextSprite,
-	interpolate: interpolate,
-	km: km
+const d = debug('app');
+
+export function toRad(deg: number) {
+	return deg * Math.PI / 180;
 }
 
-function makeTextSprite( message, parameters )
+export function makeTextSprite( message, parameters )
 {
 	if ( parameters === undefined ) parameters = {};
 	
@@ -63,7 +60,7 @@ function makeTextSprite( message, parameters )
 	return sprite;	
 }
 // function for drawing rounded rectangles
-function roundRect(ctx, x, y, w, h, r) 
+export function roundRect(ctx, x, y, w, h, r) 
 {
     ctx.beginPath();
     ctx.moveTo(x+r, y);
@@ -80,11 +77,11 @@ function roundRect(ctx, x, y, w, h, r)
 	ctx.stroke();   
 }
 
-function km(x) {
+export function km(x) {
 	return 1000 * x;
 }
 
-function interpolate(arr, rate = 1) {
+export function interpolate(arr, rate = 1) {
 	//d('interpolate', arr);
 	let i = 0;
 	const max = km(1000) * rate;

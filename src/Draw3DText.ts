@@ -1,12 +1,12 @@
-const THREE = require('three');
+import * as THREE from 'three';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import FontJson from './assets/font.json';
 
 let __font = null;
-const _fontLoaded = new Promise(function(resolve, reject) {
-	const loader = new THREE.FontLoader();
-	loader.load( 'assets/font.json', function ( response ) {
-		__font = response;
-		resolve(response);
-	});
+export const fontLoaded = new Promise(function(resolve, reject) {
+	const loader = new FontLoader();
+	__font = loader.parse(FontJson)
+	resolve(__font);
 });
 
 function scaleWidth(w) {
@@ -30,7 +30,7 @@ function actualH() {
 	return height * this.scale.y;
 }
 
-module.exports = function DrawText(text, color = 0x000000) {
+export function fontDraw(text, color = 0x000000) {
 	if (!__font) { throw new Error('Draw text before font loaded'); }
 
 	const material = new THREE.MultiMaterial( [
@@ -86,5 +86,3 @@ module.exports = function DrawText(text, color = 0x000000) {
 
 	return textMesh1;
 }
-
-module.exports.loading = _fontLoaded;

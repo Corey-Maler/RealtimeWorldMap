@@ -1,10 +1,10 @@
-const Three = require('three');
+import * as Three from 'three';
 const Vector3 = Three.Vector3;
-const d = require('debug')('app');
-//const Planet = require('./Earth');
 
+import debug from 'debug';
+const d = debug('app');
 
-class Geo extends Vector3 {
+export default class Geo extends Vector3 {
 	constructor(x, y, z) {
 		if (x instanceof Vector3) {
 			super(x.x, x.y, x.z);
@@ -78,5 +78,3 @@ class Geo extends Vector3 {
 		return new Geo.fromLL(lt2, lg2, this.h);
 	}
 }
-
-module.exports = Geo;

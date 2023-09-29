@@ -1,8 +1,13 @@
 import { createRoot } from 'react-dom/client';
 
+import { Entry } from './entry'; 
+
 export const App = () => {
     return (
-      <h1>Hello, world.</h1>
+      <div>
+        <h1>hello</h1>
+        <Entry />
+      </div>
     );
 }
 
