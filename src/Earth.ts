@@ -4,17 +4,17 @@ import { makeTextSprite } from './tools';
 import { GeoPoint } from './GeoPoint';
 
 import world from 'earth-topojson/110m.json';
+import Countries from './assets/countries.json';
 import * as topojson from 'topojson';
 
 export abstract class Planet {
   public abstract get radius(): number;
   public mesh: THREE.Group = new THREE.Group();
-  protected drawPlanet() {
-	const geometry = new THREE.SphereGeometry(this.radius, 128, 128);
-    const material = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      roughness: 1,
-      metalness: 0.075,
+  protected drawPlanet(color?: THREE.ColorRepresentation) {
+    const geometry = new THREE.SphereGeometry(this.radius, 128, 128);
+	const fgColor = new THREE.Color(color ?? 0xffffff);
+    const material = new THREE.MeshBasicMaterial({
+      color: fgColor.lerp(new THREE.Color(0x000000), 0.1),
     });
     const mesh = new THREE.Mesh(geometry, material);
     this.mesh = new THREE.Group();
@@ -33,30 +33,44 @@ export class PointOfInterest {
   }
 }
 
-export class City extends PointOfInterest {
-  public readonly poiType = 'city';
-  constructor(lat: number, long: number, name: string) {
-    super(lat, long, name);
-  }
-}
-
 export class Earth extends Planet {
-  private countryOutlineMaterial = new THREE.LineBasicMaterial({
-    color: 0xaaaaaa,
-  });
+  private fgColor: THREE.ColorRepresentation = 0x333333;
+  private countryOutlineMaterial: THREE.LineBasicMaterial;
   public get radius(): number {
     return 6731000;
   }
-  constructor() {
+  constructor({
+    color,
+    fgColor,
+  }: {
+    color?: THREE.ColorRepresentation;
+    fgColor?: THREE.ColorRepresentation;
+  }) {
     super();
-
-	this.drawPlanet();
-
-    for (const city of Earth.cities) {
-      this.drawPointOfInterest(city);
+    if (fgColor) {
+      this.fgColor = fgColor;
     }
 
+	this.countryOutlineMaterial = new THREE.LineBasicMaterial({
+	  color: this.fgColor,
+	  linewidth: 1,
+	});
+
+    this.drawPlanet(color);
+
+    // for (const city of Earth.cities) {
+    //   this.drawPointOfInterest(city);
+    // }
+
     this.drawCountriesOutlines();
+	this.drawCountryNames();
+  }
+
+  private drawCountryNames() {
+	for (const country of Countries) {
+		const poi = new PointOfInterest(country.Latitude, country.Longitude, country.Country);
+		this.drawPointOfInterest(poi);
+	}
   }
 
   drawPointOfInterest(poi: PointOfInterest) {
@@ -69,7 +83,7 @@ export class Earth extends Planet {
     );
     const dotMaterial = new THREE.PointsMaterial({
       size: 5,
-      color: 0x333333,
+      color: this.fgColor,
       sizeAttenuation: false,
     });
     const dot = new THREE.Points(dotGeometry, dotMaterial);
@@ -78,10 +92,11 @@ export class Earth extends Planet {
     dot.position.z = poi.position.z;
     this.mesh.add(dot);
 
-    const lPos = GeoPoint.fromLLd(poi.long, poi.lat, 200000);
+    const lPos = GeoPoint.fromLLd(poi.long, poi.lat, 100000);
 
     const cityNameSprite = makeTextSprite(poi.name, {
       fontsize: 14,
+	  color: new THREE.Color(this.fgColor).getStyle(),
     });
     cityNameSprite.position.x = lPos.x;
     cityNameSprite.position.y = lPos.y;
@@ -102,6 +117,9 @@ export class Earth extends Planet {
       world as any,
       world.objects.countries as any
     ) as any;
+
+	console.log(world);
+	console.log('data', TopoJsonCountriesData);
 
     for (const country of TopoJsonCountriesData.features) {
       this.drawCountry(country);
@@ -141,13 +159,4 @@ export class Earth extends Planet {
       }
     }
   }
-
-  static cities: PointOfInterest[] = [
-    new City(59.32, 8.06, 'Stockholm'),
-    new City(40.42, -74.0, 'New York'),
-    new City(51.3, 0.0, 'London'),
-    new City(35.41, 139.41, 'Tokyo'),
-    new City(-34.6, -58.06, 'Buenos Aires'),
-    new City(-33.55, 18.06, 'Cape Town'),
-  ];
 }

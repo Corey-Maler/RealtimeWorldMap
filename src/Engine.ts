@@ -9,6 +9,7 @@ export interface EngineOptions {
   planet?: Planet;
   devMode?: DevMode;
   clearColor?: THREE.ColorRepresentation;
+  fgColor?: THREE.ColorRepresentation;
 }
 
 export class Engine {
@@ -34,12 +35,11 @@ export class Engine {
   private renderer: THREE.WebGLRenderer;
   private controls: OrbitControls | undefined;
   private light: THREE.PointLight | undefined;
-  private ambientLight: THREE.AmbientLight | undefined;
 
-  constructor(private DOM: HTMLElement, _options: EngineOptions) {
-    const options = _options || {};
+  constructor(private DOM: HTMLElement, options: EngineOptions = {}) {
+    const { clearColor = 0xf5f1f1 } = options;
     this.DOM = DOM;
-    this.planet = options.planet ?? new Earth();
+    this.planet = options.planet ?? new Earth({ color: clearColor, fgColor: options.fgColor });
     this.rate = 0.000001;
 
     this.w = DOM.offsetWidth;
@@ -92,8 +92,8 @@ export class Engine {
     );
     this.scene.add(this.light);
 
-    this.ambientLight = new THREE.AmbientLight(0xffffff); // soft white light
-    this.scene.add(this.ambientLight);
+    // this.ambientLight = new THREE.AmbientLight(0xffffff); // soft white light
+    // this.scene.add(this.ambientLight);
   }
 
   render() {
