@@ -1,17 +1,20 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
     <title>Sample App</title>
     <style>
-            html { width: 100%; height: 100%; }
-			body { margin: 0; width: 100%; height: 100%; }
-			canvas { width: 500px; height: 500px }
-			#Content { width: 100%; height: 100%; position: absolute; }
+      body {
+        margin: 0;
+      }
+      #Content {
+        margin: 20px;
+        width: 500px;
+        height: 500px;
+      }
     </style>
   </head>
   <body>
-  	<div id="Content"></div>
-
+    <div id="Content"></div>
   </body>
-  <script src="/static/bundle.js"></script>
+  <script type="module" src="src/example"></script>
 </html>
