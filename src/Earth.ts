@@ -1,184 +1,153 @@
 import * as THREE from 'three';
-import { CircleGeometry, LineDashedMaterial } from 'three';
 
-// const THREE = require('three');
-import { makeTextSprite, toRad } from './tools';
-import g from './geodesic';
+import { makeTextSprite } from './tools';
+import { GeoPoint } from './GeoPoint';
 
 import world from 'earth-topojson/110m.json';
 import * as topojson from 'topojson';
 
-var countries = topojson.feature(world, world.objects.countries);
-
-const countrs = countries.features;
-
-//d('eath', countrs);
-
-export class Earth {
-  constructor() {
-    const geometry = new THREE.SphereGeometry(Earth.radius, 128, 128);
+export abstract class Planet {
+  public abstract get radius(): number;
+  public mesh: THREE.Group = new THREE.Group();
+  protected drawPlanet() {
+	const geometry = new THREE.SphereGeometry(this.radius, 128, 128);
     const material = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       roughness: 1,
       metalness: 0.075,
-      ambientIntensity: 1,
     });
     const mesh = new THREE.Mesh(geometry, material);
     this.mesh = new THREE.Group();
     this.mesh.add(mesh);
+  }
+}
 
-    this.drawGuides();
+export class PointOfInterest {
+  public readonly position: GeoPoint;
+  constructor(
+    public readonly lat: number,
+    public readonly long: number,
+    public readonly name: string
+  ) {
+    this.position = GeoPoint.fromLLd(long, lat, 10000);
+  }
+}
 
-    for (let i in Earth.cities) {
-      const a = Earth.cities[i];
-      const city = {
-        pos: g.fromLL(a.long, a.lat, 10000),
-        name: a.name,
-      };
-      this.drawCity(city);
+export class City extends PointOfInterest {
+  public readonly poiType = 'city';
+  constructor(lat: number, long: number, name: string) {
+    super(lat, long, name);
+  }
+}
+
+export class Earth extends Planet {
+  private countryOutlineMaterial = new THREE.LineBasicMaterial({
+    color: 0xaaaaaa,
+  });
+  public get radius(): number {
+    return 6731000;
+  }
+  constructor() {
+    super();
+
+	this.drawPlanet();
+
+    for (const city of Earth.cities) {
+      this.drawPointOfInterest(city);
     }
 
-    /*
-		for (let i = -9; i < 10; i++) {
-			this.drawCity({
-				pos: g.fromLLd(20 * i, 20, 10000),
-				//pos: g.fromLLd(0, 0, 10000),
-				name: 'asd'
-			});
-	    }
-	    */
-
-    for (let i in countrs) {
-      //if (countrs[i].properties.name == 'Russia')
-      this.drawCountries(countrs[i]);
-    }
+    this.drawCountriesOutlines();
   }
 
-  drawGuides() {
-    const radius = Earth.radius * 1.001,
-      segments = 64,
-      material = new LineDashedMaterial({
-        color: 0xcfcfcf,
-        linewidth: 2,
-        dashSize: Earth.radius * 0.1,
-        gapSize: Earth.radius * 0.01,
-      }),
-      geometry = new CircleGeometry(radius, segments, toRad(-100), toRad(350));
+  drawPointOfInterest(poi: PointOfInterest) {
+    const dotGeometry = new THREE.BufferGeometry();
 
-    // Remove center vertex
-    // geometry.vertices.shift();
-
-    const eqMesh = new THREE.Line(geometry, material);
-    eqMesh.rotation.x = Math.PI / 2;
-
-    // geometry.computeLineDistances();
-
-    this.mesh.add(eqMesh);
-
-    const geometryM = new THREE.CircleGeometry(
-      radius,
-      segments,
-      toRad(-10),
-      toRad(350)
+    const vertices = new Float32Array([0, 0, 0]);
+    dotGeometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(vertices, 3)
     );
-    const meredian = new THREE.Line(geometryM, material);
-    this.mesh.add(meredian);
-
-    const meredian180 = new THREE.Line(geometryM, material);
-    this.mesh.add(meredian180);
-    meredian180.rotation.y = Math.PI / 2;
-  }
-
-  drawCity(city) {
-    return;
-    const dotGeometry = new THREE.Geometry();
-    dotGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
     const dotMaterial = new THREE.PointsMaterial({
       size: 5,
       color: 0x333333,
       sizeAttenuation: false,
     });
     const dot = new THREE.Points(dotGeometry, dotMaterial);
-    dot.position.x = city.pos.x;
-    dot.position.y = city.pos.y;
-    dot.position.z = city.pos.z;
+    dot.position.x = poi.position.x;
+    dot.position.y = poi.position.y;
+    dot.position.z = poi.position.z;
     this.mesh.add(dot);
 
-    const lPos = g.fromLL(city.pos.long, city.pos.lat, 500000);
+    const lPos = GeoPoint.fromLLd(poi.long, poi.lat, 200000);
 
-    var spritey = makeTextSprite(city.name, {
-      fontsize: 24,
-      borderColor: { r: 255, g: 0, b: 0, a: 1.0 },
-      backgroundColor: { r: 255, g: 100, b: 100, a: 0.8 },
+    const cityNameSprite = makeTextSprite(poi.name, {
+      fontsize: 14,
     });
-    spritey.position.x = lPos.x;
-    spritey.position.y = lPos.y;
-    spritey.position.z = lPos.z;
-    const scaleRate = 0.002;
-    spritey.scale.set(
-      256 * Earth.radius * scaleRate,
-      64 * Earth.radius * scaleRate,
+    cityNameSprite.position.x = lPos.x;
+    cityNameSprite.position.y = lPos.y;
+    cityNameSprite.position.z = lPos.z;
+    const scaleRate = 0.001;
+    cityNameSprite.scale.set(
+      256 * this.radius * scaleRate,
+      64 * this.radius * scaleRate,
       1
     );
-    this.mesh.add(spritey);
+    this.mesh.add(cityNameSprite);
   }
 
-  drawCountries(country) {
-    //const geom = country.geometry.coordinates[0];
-    //d('country', country);
-    //console.log(country.properties.name)
+  private drawCountriesOutlines() {
+    // types are wrong, but it works
+    // good enough for now, but must be adjusted in the future
+    const TopoJsonCountriesData = topojson.feature(
+      world as any,
+      world.objects.countries as any
+    ) as any;
 
-    var material = new THREE.LineBasicMaterial({
-      color: 0xaaaaaa,
+    for (const country of TopoJsonCountriesData.features) {
+      this.drawCountry(country);
+    }
+  }
+
+  private addCountryGeometry(borderGeometry: Array<[number, number]>) {
+    const points = borderGeometry.flatMap((p: [number, number]) => {
+      const g = GeoPoint.fromLLd(p[0], p[1], 10000);
+      return [g.x, g.y, g.z];
     });
 
+    const modelGeometry = new THREE.BufferGeometry();
+
+    modelGeometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(new Float32Array(points), 3)
+    );
+
+    const borderOutline = new THREE.Line(
+      modelGeometry,
+      this.countryOutlineMaterial
+    );
+    this.mesh.add(borderOutline);
+  }
+
+  private drawCountry(country: any) {
     for (let i in country.geometry.coordinates) {
       if (country.geometry.type != 'Polygon') {
-        const geom = country.geometry.coordinates[i][0];
-        const points = geom.map((p) => g.fromLLd(p[0], p[1], 10000));
-        var geometry = new THREE.BufferGeometry();
-        /*
-		    	for (let j in geom) {
-		    		const point = geom[j];
-		    		geometry.vertices.push(g.fromLLd(point[0], point[1], 10000));
-		    	}
-				*/
-
-        geometry.setAttribute(
-          'position',
-          new THREE.BufferAttribute(new Float32Array(points), 3)
-        );
-
-        var line = new THREE.Line(geometry, material);
-        this.mesh.add(line);
+        for (const part of country.geometry.coordinates) {
+          // not sure why API returns array with the only one object inside
+          this.addCountryGeometry(part[0]);
+        }
       } else {
-        const geom = country.geometry.coordinates[i];
-        // var geometry = new THREE.Geometry();
-
-        const points = geom.map((p) => g.fromLLd(p[0], p[1], 10000));
-        var geometry = new THREE.BufferGeometry();
-        // for (let j in geom) {
-        //   const point = geom[j];
-        //   geometry.vertices.push(g.fromLLd(point[0], point[1], 10000));
-        // }
-
-        geometry.setAttribute(
-          'position',
-          new THREE.BufferAttribute(new Float32Array(points), 3)
-        );
-
-        var line = new THREE.Line(geometry, material);
-        this.mesh.add(line);
+        const geom = country.geometry.coordinates[i] as Array<[number, number]>;
+        this.addCountryGeometry(geom);
       }
     }
   }
+
+  static cities: PointOfInterest[] = [
+    new City(59.32, 8.06, 'Stockholm'),
+    new City(40.42, -74.0, 'New York'),
+    new City(51.3, 0.0, 'London'),
+    new City(35.41, 139.41, 'Tokyo'),
+    new City(-34.6, -58.06, 'Buenos Aires'),
+    new City(-33.55, 18.06, 'Cape Town'),
+  ];
 }
-
-Earth.radius = 6731000;
-
-Earth.cities = [
-  { lat: toRad(55, 45), long: toRad(37, 37), name: 'Moscow' },
-  { lat: toRad(40, 42), long: toRad(-74, 0), name: 'New York' },
-  { lat: toRad(51, 30), long: toRad(0, 0), name: 'London' },
-  { lat: toRad(35, 41), long: toRad(139, 41), name: 'Tokyo' },
-];
