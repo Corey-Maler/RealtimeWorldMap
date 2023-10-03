@@ -5,6 +5,7 @@
   "description": "Interactive 3D Globe",
   "scripts": {
     "dev": "vite dev",
+    "build": "vite build",
     "lint": "eslint src"
   },
   "repository": {
