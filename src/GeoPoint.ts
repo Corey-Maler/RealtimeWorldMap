@@ -1,5 +1,4 @@
 import { Vector3 } from 'three';
-import { Earth, Planet } from './Earth';
 
 export class GeoPoint extends Vector3 {
   public readonly h: number;
@@ -36,7 +35,6 @@ export class GeoPoint extends Vector3 {
     this.h = r - GeoPoint.planetRadius;
     this.lat = -Math.asin(-_y / r);
     this.long = -Math.atan2(_x, -_z);
-    //this.long = - Math.asin(x / (r * Math.cos(-this.lat)));
   }
 
   public asVector() {
@@ -58,13 +56,6 @@ export class GeoPoint extends Vector3 {
   static fromLL(long: number, lat: number, h: number = 0) {
     const R = GeoPoint.planetRadius;
     const r = R + h;
-    /*
-		const res = new Geo(
-			r * Math.cos(lat) * Math.cos(long),
-			r * Math.cos(lat) * Math.sin(long),
-			r * Math.sin(lat)
-		);
-		*/
 
     const res = new GeoPoint(
       r * Math.cos(-lat) * Math.sin(-long),
@@ -73,33 +64,6 @@ export class GeoPoint extends Vector3 {
     );
 
     return res;
-  }
-
-  addLL(brng: number, dis: number) {
-    const R = GeoPoint.planetRadius;
-
-    //const y = r * Math.sin(course);
-    //const x = r * Math.cos(course);
-
-    //const lg = this.long + y / R;
-    //const lt = this.lat + x / (R * (2 * Math.cos(this.long) - Math.cos(lg)));
-
-    const lt1 = this.lat;
-    const lg1 = this.long;
-
-    const lt2 = Math.asin(
-      Math.sin(lt1) * Math.cos(dis / R) +
-        Math.cos(lt1) * Math.sin(dis / R) * Math.cos(brng)
-    );
-
-    const lg2 =
-      lg1 +
-      Math.atan2(
-        Math.sin(brng) * Math.sin(dis / R) * Math.cos(lt1),
-        Math.cos(dis / R) - Math.sin(lt1) * Math.sin(lt2)
-      );
-
-    return GeoPoint.fromLL(lt2, lg2, this.h);
   }
 }
 

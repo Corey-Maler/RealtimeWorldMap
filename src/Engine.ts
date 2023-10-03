@@ -6,9 +6,9 @@ import { Earth, Planet } from './Earth';
 export type DevMode = 'd0' | 'd1' | 'd2';
 
 export interface EngineOptions {
-	planet?: Planet;
-	devMode?: DevMode;
-	clearColor?: THREE.ColorRepresentation;
+  planet?: Planet;
+  devMode?: DevMode;
+  clearColor?: THREE.ColorRepresentation;
 }
 
 export class Engine {
@@ -19,7 +19,7 @@ export class Engine {
    * Due to float32 precision,
    * it is impossible to render Earth in whole scale
    * while also being able to render 10m objects.
-   * 
+   *
    * To make it possible to "zoom" into small objects
    * And show planet on the background
    * Instead of operating in true scale,
@@ -37,13 +37,10 @@ export class Engine {
   private ambientLight: THREE.AmbientLight | undefined;
 
   constructor(private DOM: HTMLElement, _options: EngineOptions) {
-
     const options = _options || {};
     this.DOM = DOM;
-    this.planet = options.planet ??  new Earth(); // new SmallRedPlanet();
-    // this.rate = 100000 / this.planet.radius;
-	this.rate = 0.000001;
-
+    this.planet = options.planet ?? new Earth();
+    this.rate = 0.000001;
 
     this.w = DOM.offsetWidth;
     this.h = DOM.offsetHeight;
@@ -70,9 +67,9 @@ export class Engine {
   }
 
   initControls() {
-	if (!this.renderer || !this.camera) {
-		throw new Error('initControls: no renderer or camera');
-	}
+    if (!this.renderer || !this.camera) {
+      throw new Error('initControls: no renderer or camera');
+    }
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.minDistance = 9;
     this.controls.maxDistance = 15;
@@ -104,9 +101,8 @@ export class Engine {
 
     const renderer = this.renderer;
     renderer.clear();
-	renderer.render(this.scene, this.camera);
+    renderer.render(this.scene, this.camera);
   }
-
 
   start() {
     this.render();
